@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.leverx.odata.model;
 
 import lombok.Data;
 import org.apache.olingo.odata2.api.annotation.edm.EdmEntitySet;

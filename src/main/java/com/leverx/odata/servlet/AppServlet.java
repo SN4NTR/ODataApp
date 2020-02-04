@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.leverx.odata.servlet;
 
 import org.apache.olingo.odata2.core.servlet.ODataServlet;
 
@@ -7,6 +7,7 @@ import javax.servlet.annotation.WebServlet;
 
 @WebServlet(name = "appServlet",
         initParams = {@WebInitParam(name = "org.apache.olingo.odata2.service.factory",
-        value = "com.example.demo.service.AnnotationSampleServiceFactory")}, urlPatterns = "/*")
+                value = "com.leverx.odata.service.AnnotationSampleServiceFactory")},
+        urlPatterns = "/*", loadOnStartup = 1)
 public class AppServlet extends ODataServlet {
 }
