@@ -12,8 +12,8 @@ import java.util.Calendar;
 import java.util.List;
 
 @Data
-@EdmEntityType
-@EdmEntitySet
+@EdmEntityType(name = "Manufacturer")
+@EdmEntitySet(name = "ManufacturerSet")
 public class Manufacturer {
 
     @EdmKey
