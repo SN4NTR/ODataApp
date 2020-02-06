@@ -23,10 +23,14 @@ import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.KeyPredicate;
 import org.apache.olingo.odata2.api.uri.info.DeleteUriInfo;
+import org.apache.olingo.odata2.api.uri.info.GetEntitySetCountUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
 import org.apache.olingo.odata2.api.uri.info.PostUriInfo;
 import org.apache.olingo.odata2.api.uri.info.PutMergePatchUriInfo;
+import org.apache.olingo.odata2.core.ODataResponseImpl;
+import org.apache.olingo.odata2.jpa.processor.api.ODataJPAResponseBuilder;
+import org.apache.olingo.odata2.jpa.processor.core.ODataJPAResponseBuilderDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -181,6 +185,19 @@ public class EntityODataProcessor extends ODataSingleProcessor {
             companyRepository.delete(com);
         }
         return ODataResponse.status(HttpStatusCodes.NO_CONTENT).build();
+    }
+
+    @Override
+    public ODataResponse countEntitySet(GetEntitySetCountUriInfo uriInfo, String contentType) throws ODataException {
+        String entityName = uriInfo.getTargetEntitySet().getName();
+        if (EMPLOYEE_SET_NAME.equals(entityName)) {
+            int amount = employeeRepository.findAll().size();
+            return ODataResponse.entity(String.valueOf(amount)).build();
+        } else if (COMPANY_SET_NAME.equals(entityName)) {
+            int amount = companyRepository.findAll().size();
+            return ODataResponse.entity(String.valueOf(amount)).build();
+        }
+        throw new ODataNotImplementedException();
     }
 
     private List<Map<String, Object>> getAllEmployeesFromCompany(int id) {
