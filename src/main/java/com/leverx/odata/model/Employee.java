@@ -10,13 +10,12 @@ import org.apache.olingo.odata2.api.annotation.edm.EdmProperty;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import static com.leverx.odata.model.constant.EntityConstant.EMPLOYEE_SET_NAME;
 import static com.leverx.odata.model.constant.EntityConstant.EMPLOYEE_TYPE_NAME;
 import static javax.persistence.FetchType.EAGER;
-import static javax.persistence.GenerationType.AUTO;
+import static javax.persistence.GenerationType.IDENTITY;
 
 @Data
 @Entity
@@ -27,7 +26,7 @@ public class Employee {
     @Id
     @EdmKey
     @EdmProperty
-    @GeneratedValue(strategy = AUTO)
+    @GeneratedValue(strategy = IDENTITY)
     private int id;
 
     @EdmProperty

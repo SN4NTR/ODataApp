@@ -2,6 +2,8 @@ package com.leverx.odata.odata.processor;
 
 import com.leverx.odata.model.Company;
 import com.leverx.odata.model.Employee;
+import com.leverx.odata.model.converter.CompanyConverter;
+import com.leverx.odata.model.converter.EmployeeConverter;
 import com.leverx.odata.repository.CompanyRepository;
 import com.leverx.odata.repository.EmployeeRepository;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
@@ -9,18 +11,23 @@ import org.apache.olingo.odata2.api.edm.EdmLiteralKind;
 import org.apache.olingo.odata2.api.edm.EdmProperty;
 import org.apache.olingo.odata2.api.edm.EdmSimpleType;
 import org.apache.olingo.odata2.api.ep.EntityProvider;
+import org.apache.olingo.odata2.api.ep.EntityProviderReadProperties;
 import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
 import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties.ODataEntityProviderPropertiesBuilder;
+import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.exception.ODataNotFoundException;
+import org.apache.olingo.odata2.api.exception.ODataNotImplementedException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.KeyPredicate;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
+import org.apache.olingo.odata2.api.uri.info.PostUriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -95,7 +102,6 @@ public class EntityODataProcessor extends ODataSingleProcessor {
             if (COMPANY_SET_NAME.equals(edmEntitySet.getName())) {
                 int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
                 List<Map<String, Object>> employees = getAllEmployeesFromCompany(id);
-
                 URI uri = getContext().getPathInfo().getServiceRoot();
                 EntityProviderWriteProperties properties = serviceRoot(uri).build();
                 return EntityProvider.writeFeed(contentType, edmEntitySet, employees, properties);
@@ -103,6 +109,35 @@ public class EntityODataProcessor extends ODataSingleProcessor {
             throw new ODataNotFoundException(ENTITY);
         }
         throw new ODataNotFoundException(ENTITY);
+    }
+
+    @Override
+    public ODataResponse createEntity(PostUriInfo uriInfo, InputStream content, String requestContentType, String contentType) throws ODataException {
+        if (uriInfo.getNavigationSegments().size() > 0) {
+            throw new ODataNotImplementedException();
+        }
+        if (uriInfo.getStartEntitySet().getEntityType().hasStream()) {
+            throw new ODataNotImplementedException();
+        }
+
+        EntityProviderReadProperties properties = EntityProviderReadProperties.init().mergeSemantic(false).build();
+        ODataEntry entry = EntityProvider.readEntry(requestContentType, uriInfo.getStartEntitySet(), content, properties);
+        Map<String, Object> data = entry.getProperties();
+        EdmEntitySet edmEntitySet = uriInfo.getStartEntitySet();
+
+        String entityName = uriInfo.getStartEntitySet().getName();
+        if (EMPLOYEE_SET_NAME.equals(entityName)) {
+            Employee employee = EmployeeConverter.convertFromProperties(data);
+            employeeRepository.save(employee);
+            data.put("Id", employee.getId());
+            return getODataResponse(contentType, edmEntitySet, data);
+        } else if (COMPANY_SET_NAME.equals(entityName)) {
+            Company company = CompanyConverter.convertFromProperties(data);
+            companyRepository.save(company);
+            data.put("Id", company.getId());
+            return getODataResponse(contentType, edmEntitySet, data);
+        }
+        throw new ODataNotImplementedException();
     }
 
     private List<Map<String, Object>> getAllEmployeesFromCompany(int id) {
@@ -164,7 +199,7 @@ public class EntityODataProcessor extends ODataSingleProcessor {
         List<Company> companies = companyRepository.findAll();
         for (Company company : companies) {
             int id = company.getId();
-            Map<String, Object> employeeMap = getEmployeeMap(id);
+            Map<String, Object> employeeMap = getCompanyMap(id);
             companiesSet.add(employeeMap);
         }
         return companiesSet;
