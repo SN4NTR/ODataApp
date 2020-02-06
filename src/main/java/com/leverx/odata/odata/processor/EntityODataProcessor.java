@@ -152,11 +152,13 @@ public class EntityODataProcessor extends ODataSingleProcessor {
         String entityName = uriInfo.getStartEntitySet().getName();
         if (EMPLOYEE_SET_NAME.equals(entityName)) {
             int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
+            employeeRepository.findById(id).orElseThrow(IllegalArgumentException::new);
             Employee employee = EmployeeConverter.convertFromProperties(data);
             employee.setId(id);
             employeeRepository.save(employee);
         } else if (COMPANY_SET_NAME.equals(entityName)) {
             int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
+            companyRepository.findById(id).orElseThrow(IllegalArgumentException::new);
             Company company = CompanyConverter.convertFromProperties(data);
             company.setId(id);
             companyRepository.save(company);
