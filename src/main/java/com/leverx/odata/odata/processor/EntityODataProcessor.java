@@ -1,9 +1,9 @@
 package com.leverx.odata.odata.processor;
 
-import com.leverx.odata.model.Car;
-import com.leverx.odata.model.Manufacturer;
-import com.leverx.odata.repository.CarRepository;
-import com.leverx.odata.repository.ManufacturerRepository;
+import com.leverx.odata.model.Company;
+import com.leverx.odata.model.Employee;
+import com.leverx.odata.repository.CompanyRepository;
+import com.leverx.odata.repository.EmployeeRepository;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmLiteralKind;
 import org.apache.olingo.odata2.api.edm.EdmProperty;
@@ -16,27 +16,31 @@ import org.apache.olingo.odata2.api.exception.ODataNotFoundException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.KeyPredicate;
+import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.leverx.odata.model.constant.EntityConstant.CAR_SET_NAME;
-import static com.leverx.odata.model.constant.EntityConstant.MANUFACTURER_SET_NAME;
+import static com.leverx.odata.model.constant.EntityConstant.COMPANY_SET_NAME;
+import static com.leverx.odata.model.constant.EntityConstant.EMPLOYEE_SET_NAME;
+import static org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties.serviceRoot;
 import static org.apache.olingo.odata2.api.exception.ODataNotFoundException.ENTITY;
 
 @Component
 public class EntityODataProcessor extends ODataSingleProcessor {
 
     @Autowired
-    private CarRepository carRepository;
+    private EmployeeRepository employeeRepository;
 
     @Autowired
-    private ManufacturerRepository manufacturerRepository;
+    private CompanyRepository companyRepository;
 
     @Override
     public ODataResponse readEntity(GetEntityUriInfo uriInfo, String contentType) throws ODataException {
@@ -46,18 +50,45 @@ public class EntityODataProcessor extends ODataSingleProcessor {
         int id = getKeyValue(keyPredicate);
 
         if (uriInfo.getNavigationSegments().size() == 0) {
-            if (CAR_SET_NAME.equals(entitySetName)) {
-                Map<String, Object> cars = getCarMap(id);
-                return getODataResponse(contentType, edmEntitySet, cars);
-            } else if (MANUFACTURER_SET_NAME.equals(entitySetName)) {
-                Map<String, Object> manufacturers = getManufacturerMap(id);
-                return getODataResponse(contentType, edmEntitySet, manufacturers);
+            if (EMPLOYEE_SET_NAME.equals(entitySetName)) {
+                Map<String, Object> employees = getEmployeeMap(id);
+                return getODataResponse(contentType, edmEntitySet, employees);
+            } else if (COMPANY_SET_NAME.equals(entitySetName)) {
+                Map<String, Object> companies = getCompanyMap(id);
+                return getODataResponse(contentType, edmEntitySet, companies);
             }
             throw new ODataNotFoundException(ENTITY);
         } else if (uriInfo.getNavigationSegments().size() == 1) {
-            if (CAR_SET_NAME.equals(edmEntitySet.getName())) {
-                Map<String, Object> cars = getCarMap(id);
-                return getODataResponse(contentType, edmEntitySet, cars);
+            if (EMPLOYEE_SET_NAME.equals(edmEntitySet.getName())) {
+                Map<String, Object> employees = getEmployeeMap(id);
+                return getODataResponse(contentType, edmEntitySet, employees);
+            }
+            throw new ODataNotFoundException(ENTITY);
+        }
+        throw new ODataNotFoundException(ENTITY);
+    }
+
+    @Override
+    public ODataResponse readEntitySet(GetEntitySetUriInfo uriInfo, String contentType) throws ODataException {
+        EdmEntitySet edmEntitySet = uriInfo.getStartEntitySet();
+
+        if (uriInfo.getNavigationSegments().size() == 0) {
+            if (EMPLOYEE_SET_NAME.equals(edmEntitySet.getName())) {
+                List<Map<String, Object>> employees = getEmployeesMap();
+                URI uri = getContext().getPathInfo().getServiceRoot();
+                EntityProviderWriteProperties properties = serviceRoot(uri).build();
+                return EntityProvider.writeFeed(contentType, edmEntitySet, employees, properties);
+            } else if (COMPANY_SET_NAME.equals(edmEntitySet.getName())) {
+                List<Map<String, Object>> companies = getCompaniesMap();
+                URI uri = getContext().getPathInfo().getServiceRoot();
+                EntityProviderWriteProperties properties = serviceRoot(uri).build();
+                return EntityProvider.writeFeed(contentType, edmEntitySet, companies, properties);
+            }
+            throw new ODataNotFoundException(ENTITY);
+        } else if (uriInfo.getNavigationSegments().size() == 1) {
+            if (EMPLOYEE_SET_NAME.equals(edmEntitySet.getName())) {
+                int companyKey = getKeyValue(uriInfo.getKeyPredicates().get(0));
+                // TODO
             }
             throw new ODataNotFoundException(ENTITY);
         }
@@ -66,35 +97,53 @@ public class EntityODataProcessor extends ODataSingleProcessor {
 
     private ODataResponse getODataResponse(String contentType, EdmEntitySet edmEntitySet, Map<String, Object> data) throws ODataException {
         URI serviceRoot = getContext().getPathInfo().getServiceRoot();
-        ODataEntityProviderPropertiesBuilder propertiesBuilder = EntityProviderWriteProperties.serviceRoot(serviceRoot);
+        ODataEntityProviderPropertiesBuilder propertiesBuilder = serviceRoot(serviceRoot);
         return EntityProvider.writeEntry(contentType, edmEntitySet, data, propertiesBuilder.build());
     }
 
-    private Map<String, Object> getCarMap(int id) {
-        Optional<Car> carOpt = carRepository.findById(id);
-        Car car = carOpt.orElseThrow(IllegalArgumentException::new);
+    private Map<String, Object> getEmployeeMap(int id) {
+        Optional<Employee> employeeOpt = employeeRepository.findById(id);
+        Employee employee = employeeOpt.orElseThrow(IllegalArgumentException::new);
 
-        Map<String, Object> carMap = new HashMap<>();
-        carMap.put("Id", car.getId());
-        carMap.put("Model", car.getModel());
-        carMap.put("Price", car.getPrice());
-        carMap.put("ProductionYear", car.getProductionYear());
-        carMap.put("Manufacturer", car.getManufacturer());
-
-        return carMap;
+        Map<String, Object> employeeMap = new HashMap<>();
+        employeeMap.put("Id", employee.getId());
+        employeeMap.put("Name", employee.getName());
+        return employeeMap;
     }
 
-    private Map<String, Object> getManufacturerMap(int id) {
-        Optional<Manufacturer> manufacturerOpt = manufacturerRepository.findById(id);
-        Manufacturer manufacturer = manufacturerOpt.orElseThrow(IllegalArgumentException::new);
+    private List<Map<String, Object>> getEmployeesMap() {
+        List<Map<String, Object>> employeeSet = new ArrayList<>();
 
-        Map<String, Object> manufacturerMap = new HashMap<>();
-        manufacturerMap.put("Id", manufacturer.getId());
-        manufacturerMap.put("Name", manufacturer.getName());
-        manufacturerMap.put("Founded", manufacturer.getFounded());
-        manufacturerMap.put("Cars", manufacturer.getCars());
+        List<Employee> employees = employeeRepository.findAll();
+        for (Employee employee : employees) {
+            int id = employee.getId();
+            Map<String, Object> employeeMap = getEmployeeMap(id);
+            employeeSet.add(employeeMap);
+        }
+        return employeeSet;
+    }
 
-        return manufacturerMap;
+    private Map<String, Object> getCompanyMap(int id) {
+        Optional<Company> companyOpt = companyRepository.findById(id);
+        Company company = companyOpt.orElseThrow(IllegalArgumentException::new);
+
+        Map<String, Object> companyMap = new HashMap<>();
+        companyMap.put("Id", company.getId());
+        companyMap.put("Name", company.getName());
+        companyMap.put("Founded", company.getFounded());
+        return companyMap;
+    }
+
+    private List<Map<String, Object>> getCompaniesMap() {
+        List<Map<String, Object>> companiesSet = new ArrayList<>();
+
+        List<Company> companies = companyRepository.findAll();
+        for (Company company : companies) {
+            int id = company.getId();
+            Map<String, Object> employeeMap = getEmployeeMap(id);
+            companiesSet.add(employeeMap);
+        }
+        return companiesSet;
     }
 
     private int getKeyValue(KeyPredicate key) throws ODataException {

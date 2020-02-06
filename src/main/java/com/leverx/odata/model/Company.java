@@ -14,15 +14,16 @@ import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.leverx.odata.model.constant.EntityConstant.MANUFACTURER_SET_NAME;
-import static com.leverx.odata.model.constant.EntityConstant.MANUFACTURER_TYPE_NAME;
+import static com.leverx.odata.model.constant.EntityConstant.COMPANY_SET_NAME;
+import static com.leverx.odata.model.constant.EntityConstant.COMPANY_TYPE_NAME;
+import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.AUTO;
 
 @Data
 @Entity
-@EdmEntityType(name = MANUFACTURER_TYPE_NAME)
-@EdmEntitySet(name = MANUFACTURER_SET_NAME)
-public class Manufacturer {
+@EdmEntityType(name = COMPANY_TYPE_NAME)
+@EdmEntitySet(name = COMPANY_SET_NAME)
+public class Company {
 
     @Id
     @EdmKey
@@ -36,7 +37,7 @@ public class Manufacturer {
     @EdmProperty
     private Integer founded;
 
-    @OneToMany
+    @OneToMany(fetch = EAGER)
     @EdmNavigationProperty
-    private List<Car> cars = new ArrayList<>();
+    private List<Employee> employees = new ArrayList<>();
 }

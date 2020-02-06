@@ -12,15 +12,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-import static com.leverx.odata.model.constant.EntityConstant.CAR_SET_NAME;
-import static com.leverx.odata.model.constant.EntityConstant.CAR_TYPE_NAME;
+import static com.leverx.odata.model.constant.EntityConstant.EMPLOYEE_SET_NAME;
+import static com.leverx.odata.model.constant.EntityConstant.EMPLOYEE_TYPE_NAME;
+import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.AUTO;
 
 @Data
 @Entity
-@EdmEntityType(name = CAR_TYPE_NAME)
-@EdmEntitySet(name = CAR_SET_NAME)
-public class Car {
+@EdmEntityType(name = EMPLOYEE_TYPE_NAME)
+@EdmEntitySet(name = EMPLOYEE_SET_NAME)
+public class Employee {
 
     @Id
     @EdmKey
@@ -29,15 +30,9 @@ public class Car {
     private int id;
 
     @EdmProperty
-    private String model;
+    private String name;
 
-    @EdmProperty
-    private Double price;
-
-    @EdmProperty
-    private Integer productionYear;
-
-    @ManyToOne
+    @ManyToOne(fetch = EAGER)
     @EdmNavigationProperty
-    private Manufacturer manufacturer;
+    private Company company;
 }
