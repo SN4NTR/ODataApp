@@ -6,6 +6,7 @@ import com.leverx.odata.model.converter.CompanyConverter;
 import com.leverx.odata.model.converter.EmployeeConverter;
 import com.leverx.odata.repository.CompanyRepository;
 import com.leverx.odata.repository.EmployeeRepository;
+import org.apache.olingo.odata2.api.commons.HttpStatusCodes;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmLiteralKind;
 import org.apache.olingo.odata2.api.edm.EdmProperty;
@@ -21,6 +22,7 @@ import org.apache.olingo.odata2.api.exception.ODataNotImplementedException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.KeyPredicate;
+import org.apache.olingo.odata2.api.uri.info.DeleteUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
 import org.apache.olingo.odata2.api.uri.info.PostUriInfo;
@@ -138,6 +140,23 @@ public class EntityODataProcessor extends ODataSingleProcessor {
             return getODataResponse(contentType, edmEntitySet, data);
         }
         throw new ODataNotImplementedException();
+    }
+
+    @Override
+    public ODataResponse deleteEntity(DeleteUriInfo uriInfo, String contentType) throws ODataException {
+        String entityName = uriInfo.getTargetEntitySet().getName();
+        if (EMPLOYEE_SET_NAME.equals(entityName)) {
+            int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
+            Optional<Employee> employeeOpt = employeeRepository.findById(id);
+            Employee employee = employeeOpt.orElseThrow(IllegalArgumentException::new);
+            employeeRepository.delete(employee);
+        } else if (COMPANY_SET_NAME.equals(entityName)) {
+            int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
+            Optional<Company> companyOpt = companyRepository.findById(id);
+            Company com = companyOpt.orElseThrow(IllegalArgumentException::new);
+            companyRepository.delete(com);
+        }
+        return ODataResponse.status(HttpStatusCodes.NO_CONTENT).build();
     }
 
     private List<Map<String, Object>> getAllEmployeesFromCompany(int id) {
