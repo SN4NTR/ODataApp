@@ -10,6 +10,7 @@ import org.apache.olingo.odata2.api.annotation.edm.EdmProperty;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import static com.leverx.odata.model.constant.EntityConstant.EMPLOYEE_SET_NAME;
@@ -32,7 +33,7 @@ public class Employee {
     @EdmProperty
     private String name;
 
-    @ManyToOne(fetch = EAGER)
     @EdmNavigationProperty
+    @ManyToOne(fetch = EAGER)
     private Company company;
 }

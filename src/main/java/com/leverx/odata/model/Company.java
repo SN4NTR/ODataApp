@@ -7,6 +7,7 @@ import org.apache.olingo.odata2.api.annotation.edm.EdmKey;
 import org.apache.olingo.odata2.api.annotation.edm.EdmNavigationProperty;
 import org.apache.olingo.odata2.api.annotation.edm.EdmProperty;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -16,8 +17,10 @@ import java.util.List;
 
 import static com.leverx.odata.model.constant.EntityConstant.COMPANY_SET_NAME;
 import static com.leverx.odata.model.constant.EntityConstant.COMPANY_TYPE_NAME;
+import static javax.persistence.CascadeType.REMOVE;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.AUTO;
+import static org.apache.olingo.odata2.api.annotation.edm.EdmNavigationProperty.Multiplicity.MANY;
 
 @Data
 @Entity
@@ -37,7 +40,7 @@ public class Company {
     @EdmProperty
     private Integer founded;
 
-    @OneToMany(fetch = EAGER)
     @EdmNavigationProperty
-    private List<Employee> employees = new ArrayList<>();
+    @OneToMany(fetch = EAGER, cascade = REMOVE, mappedBy = "company")
+    private List<Employee> employees;
 }

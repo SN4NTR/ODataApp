@@ -60,8 +60,14 @@ public class EntityODataProcessor extends ODataSingleProcessor {
             throw new ODataNotFoundException(ENTITY);
         } else if (uriInfo.getNavigationSegments().size() == 1) {
             if (EMPLOYEE_SET_NAME.equals(edmEntitySet.getName())) {
-                Map<String, Object> employees = getEmployeeMap(id);
-                return getODataResponse(contentType, edmEntitySet, employees);
+                Optional<Employee> employeeOpt = employeeRepository.findById(id);
+                Employee employee = employeeOpt.orElseThrow(IllegalArgumentException::new);
+                int companyId = employee.getCompany().getId();
+                Map<String, Object> company = getCompanyMap(companyId);
+                return getODataResponse(contentType, edmEntitySet, company);
+            } else if (COMPANY_SET_NAME.equals(edmEntitySet.getName())) {
+                Map<String, Object> employee = getEmployeeMap(id);
+                return getODataResponse(contentType, edmEntitySet, employee);
             }
             throw new ODataNotFoundException(ENTITY);
         }
@@ -86,13 +92,31 @@ public class EntityODataProcessor extends ODataSingleProcessor {
             }
             throw new ODataNotFoundException(ENTITY);
         } else if (uriInfo.getNavigationSegments().size() == 1) {
-            if (EMPLOYEE_SET_NAME.equals(edmEntitySet.getName())) {
-                int companyKey = getKeyValue(uriInfo.getKeyPredicates().get(0));
-                // TODO
+            if (COMPANY_SET_NAME.equals(edmEntitySet.getName())) {
+                int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
+                List<Map<String, Object>> employees = getAllEmployeesFromCompany(id);
+
+                URI uri = getContext().getPathInfo().getServiceRoot();
+                EntityProviderWriteProperties properties = serviceRoot(uri).build();
+                return EntityProvider.writeFeed(contentType, edmEntitySet, employees, properties);
             }
             throw new ODataNotFoundException(ENTITY);
         }
         throw new ODataNotFoundException(ENTITY);
+    }
+
+    private List<Map<String, Object>> getAllEmployeesFromCompany(int id) {
+        Optional<Company> companyOpt = companyRepository.findById(id);
+        Company company = companyOpt.orElseThrow(IllegalArgumentException::new);
+        List<Employee> employees = company.getEmployees();
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Employee employee : employees) {
+            int employeeId = employee.getId();
+            Map<String, Object> employeeMap = getEmployeeMap(employeeId);
+            result.add(employeeMap);
+        }
+        return result;
     }
 
     private ODataResponse getODataResponse(String contentType, EdmEntitySet edmEntitySet, Map<String, Object> data) throws ODataException {
