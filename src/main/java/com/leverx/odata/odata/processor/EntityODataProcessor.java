@@ -26,6 +26,7 @@ import org.apache.olingo.odata2.api.uri.info.DeleteUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
 import org.apache.olingo.odata2.api.uri.info.PostUriInfo;
+import org.apache.olingo.odata2.api.uri.info.PutMergePatchUriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -140,6 +141,27 @@ public class EntityODataProcessor extends ODataSingleProcessor {
             return getODataResponse(contentType, edmEntitySet, data);
         }
         throw new ODataNotImplementedException();
+    }
+
+    @Override
+    public ODataResponse updateEntity(PutMergePatchUriInfo uriInfo, InputStream content, String requestContentType, boolean merge, String contentType) throws ODataException {
+        EntityProviderReadProperties properties = EntityProviderReadProperties.init().mergeSemantic(false).build();
+        ODataEntry entry = EntityProvider.readEntry(requestContentType, uriInfo.getTargetEntitySet(), content, properties);
+        Map<String, Object> data = entry.getProperties();
+
+        String entityName = uriInfo.getStartEntitySet().getName();
+        if (EMPLOYEE_SET_NAME.equals(entityName)) {
+            int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
+            Employee employee = EmployeeConverter.convertFromProperties(data);
+            employee.setId(id);
+            employeeRepository.save(employee);
+        } else if (COMPANY_SET_NAME.equals(entityName)) {
+            int id = getKeyValue(uriInfo.getKeyPredicates().get(0));
+            Company company = CompanyConverter.convertFromProperties(data);
+            company.setId(id);
+            companyRepository.save(company);
+        }
+        return ODataResponse.status(HttpStatusCodes.NO_CONTENT).build();
     }
 
     @Override
