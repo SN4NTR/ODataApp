@@ -1,25 +1,8 @@
-DROP TABLE IF EXISTS CARS;
-DROP TABLE IF EXISTS MANUFACTURER;
+INSERT INTO MANUFACTURER (id, name, founded)
+VALUES (1, 'testManuf', 2010);
 
-CREATE TABLE manufacturer
-(
-    id      INT AUTO_INCREMENT PRIMARY KEY,
-    name    VARCHAR(255) NOT NULL,
-    founded INT          NOT NULL
-);
+INSERT INTO CAR (id, model, price, production_year, manufacturer_id)
+VALUES (1, 'tesla', 200.00, 2020, 1);
 
-CREATE TABLE cars
-(
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    model           VARCHAR(255) NOT NULL,
-    price           double       NOT NULL,
-    production_year DATE         NOT NULL,
-    manufacturer_id INT,
-    FOREIGN KEY (manufacturer_id) REFERENCES manufacturer (id)
-);
-
-INSERT INTO manufacturer (name, founded)
-VALUES ('test manufacturer', 2010);
-
-INSERT INTO cars (model, price, production_year, manufacturer_id)
-VALUES ('test', 100.00, NOW(), 1);
+INSERT INTO CAR (id, model, price, production_year, manufacturer_id)
+VALUES (2, 'bmw', 100.00, 2019, null);
