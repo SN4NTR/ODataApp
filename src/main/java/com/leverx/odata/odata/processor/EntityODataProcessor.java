@@ -99,7 +99,7 @@ public class EntityODataProcessor extends ODataSingleProcessor {
                 EntityProviderWriteProperties properties = serviceRoot(uri).build();
                 return EntityProvider.writeFeed(contentType, edmEntitySet, employees, properties);
             } else if (COMPANY_SET_NAME.equals(edmEntitySet.getName())) {
-                List<Map<String, Object>> companies = getCompaniesMap();
+                List<Map<String, Object>> companies = getCompaniesMap(skip, top);
                 URI uri = getContext().getPathInfo().getServiceRoot();
                 EntityProviderWriteProperties properties = serviceRoot(uri).build();
                 return EntityProvider.writeFeed(contentType, edmEntitySet, companies, properties);
@@ -233,28 +233,13 @@ public class EntityODataProcessor extends ODataSingleProcessor {
     private List<Map<String, Object>> getEmployeesMap(Integer skip, Integer top) {
         List<Map<String, Object>> result = new ArrayList<>();
         List<Employee> employees = employeeRepository.findAll();
-        employees = getEmployeeSubList(employees, skip, top);
+        employees = getSubList(employees, skip, top);
         for (Employee employee : employees) {
             int id = employee.getId();
             Map<String, Object> employeeMap = getEmployeeMap(id);
             result.add(employeeMap);
         }
         return result;
-    }
-
-    private List<Employee> getEmployeeSubList(List<Employee> employees, Integer lowerBorder, Integer upperBorder) {
-        if (nonNull(lowerBorder) && nonNull(upperBorder)) {
-            upperBorder += lowerBorder;
-            return employees.subList(lowerBorder, upperBorder);
-        } else if (nonNull(lowerBorder)) {
-            upperBorder = employees.size();
-            return employees.subList(lowerBorder, upperBorder);
-        } else if (nonNull(upperBorder)) {
-            lowerBorder = 0;
-            return employees.subList(lowerBorder, upperBorder);
-        } else {
-            return employees;
-        }
     }
 
     private Map<String, Object> getCompanyMap(int id) {
@@ -268,16 +253,31 @@ public class EntityODataProcessor extends ODataSingleProcessor {
         return companyMap;
     }
 
-    private List<Map<String, Object>> getCompaniesMap() {
+    private List<Map<String, Object>> getCompaniesMap(Integer skip, Integer top) {
         List<Map<String, Object>> companiesSet = new ArrayList<>();
-
         List<Company> companies = companyRepository.findAll();
+        companies = getSubList(companies, skip, top);
         for (Company company : companies) {
             int id = company.getId();
             Map<String, Object> employeeMap = getCompanyMap(id);
             companiesSet.add(employeeMap);
         }
         return companiesSet;
+    }
+
+    private <T> List<T> getSubList(List<T> list, Integer lowerBorder, Integer upperBorder) {
+        if (nonNull(lowerBorder) && nonNull(upperBorder)) {
+            upperBorder += lowerBorder;
+            return list.subList(lowerBorder, upperBorder);
+        } else if (nonNull(lowerBorder)) {
+            upperBorder = list.size();
+            return list.subList(lowerBorder, upperBorder);
+        } else if (nonNull(upperBorder)) {
+            lowerBorder = 0;
+            return list.subList(lowerBorder, upperBorder);
+        } else {
+            return list;
+        }
     }
 
     private int getKeyValue(KeyPredicate key) throws ODataException {
