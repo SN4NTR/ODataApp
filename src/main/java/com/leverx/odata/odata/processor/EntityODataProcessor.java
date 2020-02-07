@@ -28,9 +28,6 @@ import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
 import org.apache.olingo.odata2.api.uri.info.PostUriInfo;
 import org.apache.olingo.odata2.api.uri.info.PutMergePatchUriInfo;
-import org.apache.olingo.odata2.core.ODataResponseImpl;
-import org.apache.olingo.odata2.jpa.processor.api.ODataJPAResponseBuilder;
-import org.apache.olingo.odata2.jpa.processor.core.ODataJPAResponseBuilderDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +41,7 @@ import java.util.Optional;
 
 import static com.leverx.odata.model.constant.EntityConstant.COMPANY_SET_NAME;
 import static com.leverx.odata.model.constant.EntityConstant.EMPLOYEE_SET_NAME;
+import static java.util.Objects.nonNull;
 import static org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties.serviceRoot;
 import static org.apache.olingo.odata2.api.exception.ODataNotFoundException.ENTITY;
 
@@ -91,10 +89,12 @@ public class EntityODataProcessor extends ODataSingleProcessor {
     @Override
     public ODataResponse readEntitySet(GetEntitySetUriInfo uriInfo, String contentType) throws ODataException {
         EdmEntitySet edmEntitySet = uriInfo.getStartEntitySet();
+        Integer skip = uriInfo.getSkip();
+        Integer top = uriInfo.getTop();
 
         if (uriInfo.getNavigationSegments().size() == 0) {
             if (EMPLOYEE_SET_NAME.equals(edmEntitySet.getName())) {
-                List<Map<String, Object>> employees = getEmployeesMap();
+                List<Map<String, Object>> employees = getEmployeesMap(skip, top);
                 URI uri = getContext().getPathInfo().getServiceRoot();
                 EntityProviderWriteProperties properties = serviceRoot(uri).build();
                 return EntityProvider.writeFeed(contentType, edmEntitySet, employees, properties);
@@ -230,16 +230,31 @@ public class EntityODataProcessor extends ODataSingleProcessor {
         return employeeMap;
     }
 
-    private List<Map<String, Object>> getEmployeesMap() {
-        List<Map<String, Object>> employeeSet = new ArrayList<>();
-
+    private List<Map<String, Object>> getEmployeesMap(Integer skip, Integer top) {
+        List<Map<String, Object>> result = new ArrayList<>();
         List<Employee> employees = employeeRepository.findAll();
+        employees = getEmployeeSubList(employees, skip, top);
         for (Employee employee : employees) {
             int id = employee.getId();
             Map<String, Object> employeeMap = getEmployeeMap(id);
-            employeeSet.add(employeeMap);
+            result.add(employeeMap);
         }
-        return employeeSet;
+        return result;
+    }
+
+    private List<Employee> getEmployeeSubList(List<Employee> employees, Integer lowerBorder, Integer upperBorder) {
+        if (nonNull(lowerBorder) && nonNull(upperBorder)) {
+            upperBorder += lowerBorder;
+            return employees.subList(lowerBorder, upperBorder);
+        } else if (nonNull(lowerBorder)) {
+            upperBorder = employees.size();
+            return employees.subList(lowerBorder, upperBorder);
+        } else if (nonNull(upperBorder)) {
+            lowerBorder = 0;
+            return employees.subList(lowerBorder, upperBorder);
+        } else {
+            return employees;
+        }
     }
 
     private Map<String, Object> getCompanyMap(int id) {
