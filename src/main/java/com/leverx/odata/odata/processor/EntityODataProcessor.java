@@ -6,6 +6,7 @@ import com.leverx.odata.model.converter.CompanyConverter;
 import com.leverx.odata.model.converter.EmployeeConverter;
 import com.leverx.odata.repository.CompanyRepository;
 import com.leverx.odata.repository.EmployeeRepository;
+import lombok.RequiredArgsConstructor;
 import org.apache.olingo.odata2.api.commons.HttpStatusCodes;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmLiteralKind;
@@ -46,13 +47,11 @@ import static org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties.serv
 import static org.apache.olingo.odata2.api.exception.ODataNotFoundException.ENTITY;
 
 @Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class EntityODataProcessor extends ODataSingleProcessor {
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
-
-    @Autowired
-    private CompanyRepository companyRepository;
+    private final EmployeeRepository employeeRepository;
+    private final CompanyRepository companyRepository;
 
     @Override
     public ODataResponse readEntity(GetEntityUriInfo uriInfo, String contentType) throws ODataException {
