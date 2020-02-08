@@ -36,12 +36,14 @@ public class AppDataSource implements DataSource {
     public List<?> readData(EdmEntitySet entitySet) throws ODataNotImplementedException, EdmException {
         String entitySetName = entitySet.getName();
 
-        if (EMPLOYEE_SET_NAME.equals(entitySetName)) {
-            return employeeRepository.findAll();
-        } else if (COMPANY_SET_NAME.equals(entitySetName)) {
-            return companyRepository.findAll();
+        switch (entitySetName) {
+            case EMPLOYEE_SET_NAME:
+                return employeeRepository.findAll();
+            case COMPANY_SET_NAME:
+                return companyRepository.findAll();
+            default:
+                throw new ODataNotImplementedException();
         }
-        throw new ODataNotImplementedException();
     }
 
     @Override
