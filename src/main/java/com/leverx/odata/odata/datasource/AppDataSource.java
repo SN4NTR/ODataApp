@@ -9,7 +9,6 @@ import org.apache.olingo.odata2.annotation.processor.core.datasource.DataSource;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmException;
 import org.apache.olingo.odata2.api.edm.EdmFunctionImport;
-import org.apache.olingo.odata2.api.exception.ODataApplicationException;
 import org.apache.olingo.odata2.api.exception.ODataNotFoundException;
 import org.apache.olingo.odata2.api.exception.ODataNotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,9 @@ public class AppDataSource implements DataSource {
     }
 
     @Override
-    public Object readData(EdmEntitySet entitySet, Map<String, Object> keys) throws ODataNotImplementedException, ODataNotFoundException, EdmException {
+    public Object readData(EdmEntitySet entitySet, Map<String, Object> keys)
+            throws ODataNotImplementedException, ODataNotFoundException, EdmException {
+
         String entitySetName = entitySet.getName();
         Integer id = (Integer) keys.get(ID_KEY);
 
@@ -64,12 +65,16 @@ public class AppDataSource implements DataSource {
     }
 
     @Override
-    public Object readData(EdmFunctionImport function, Map<String, Object> parameters, Map<String, Object> keys) throws ODataNotImplementedException, ODataNotFoundException, EdmException, ODataApplicationException {
+    public Object readData(EdmFunctionImport function, Map<String, Object> parameters, Map<String, Object> keys)
+            throws ODataNotImplementedException {
+
         throw new ODataNotImplementedException();
     }
 
     @Override
-    public Object readRelatedData(EdmEntitySet sourceEntitySet, Object sourceData, EdmEntitySet targetEntitySet, Map<String, Object> targetKeys) throws ODataNotImplementedException, ODataNotFoundException, EdmException, ODataApplicationException {
+    public Object readRelatedData(EdmEntitySet sourceEntitySet, Object sourceData, EdmEntitySet targetEntitySet, Map<String, Object> targetKeys)
+            throws ODataNotImplementedException, ODataNotFoundException, EdmException {
+
         String targetEntityName = targetEntitySet.getName();
 
         switch (targetEntityName) {
@@ -89,12 +94,12 @@ public class AppDataSource implements DataSource {
     }
 
     @Override
-    public BinaryData readBinaryData(EdmEntitySet entitySet, Object mediaLinkEntryData) throws ODataNotImplementedException, ODataNotFoundException, EdmException, ODataApplicationException {
+    public BinaryData readBinaryData(EdmEntitySet entitySet, Object mediaLinkEntryData) throws ODataNotImplementedException {
         throw new ODataNotImplementedException();
     }
 
     @Override
-    public Object newDataObject(EdmEntitySet entitySet) throws ODataNotImplementedException, EdmException, ODataApplicationException {
+    public Object newDataObject(EdmEntitySet entitySet) throws ODataNotImplementedException, EdmException {
         String entitySetName = entitySet.getName();
 
         switch (entitySetName) {
@@ -108,12 +113,16 @@ public class AppDataSource implements DataSource {
     }
 
     @Override
-    public void writeBinaryData(EdmEntitySet entitySet, Object mediaLinkEntryData, BinaryData binaryData) throws ODataNotImplementedException, ODataNotFoundException, EdmException, ODataApplicationException {
+    public void writeBinaryData(EdmEntitySet entitySet, Object mediaLinkEntryData, BinaryData binaryData)
+            throws ODataNotImplementedException {
+
         throw new ODataNotImplementedException();
     }
 
     @Override
-    public void deleteData(EdmEntitySet entitySet, Map<String, Object> keys) throws ODataNotImplementedException, ODataNotFoundException, EdmException, ODataApplicationException {
+    public void deleteData(EdmEntitySet entitySet, Map<String, Object> keys)
+            throws ODataNotImplementedException, ODataNotFoundException, EdmException {
+
         String entitySetName = entitySet.getName();
         Integer id = (Integer) keys.get(ID_KEY);
 
@@ -134,7 +143,7 @@ public class AppDataSource implements DataSource {
     }
 
     @Override
-    public void createData(EdmEntitySet entitySet, Object data) throws ODataNotImplementedException, EdmException, ODataApplicationException {
+    public void createData(EdmEntitySet entitySet, Object data) throws ODataNotImplementedException, EdmException {
         String entitySetName = entitySet.getName();
 
         switch (entitySetName) {
@@ -152,12 +161,16 @@ public class AppDataSource implements DataSource {
     }
 
     @Override
-    public void deleteRelation(EdmEntitySet sourceEntitySet, Object sourceData, EdmEntitySet targetEntitySet, Map<String, Object> targetKeys) throws ODataNotImplementedException, ODataNotFoundException, EdmException, ODataApplicationException {
+    public void deleteRelation(EdmEntitySet sourceEntitySet, Object sourceData, EdmEntitySet targetEntitySet, Map<String, Object> targetKeys)
+            throws ODataNotImplementedException {
+
         throw new ODataNotImplementedException();
     }
 
     @Override
-    public void writeRelation(EdmEntitySet sourceEntitySet, Object sourceData, EdmEntitySet targetEntitySet, Map<String, Object> targetKeys) throws ODataNotImplementedException, ODataNotFoundException, EdmException, ODataApplicationException {
+    public void writeRelation(EdmEntitySet sourceEntitySet, Object sourceData, EdmEntitySet targetEntitySet, Map<String, Object> targetKeys)
+            throws ODataNotImplementedException {
+
         throw new ODataNotImplementedException();
     }
 }
